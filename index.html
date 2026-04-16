@@ -1,1 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Points Challenge</title>
+<style>
+body { font-family: Arial; text-align:center; background:#111; color:white; }
+.screen { display:none; padding:20px; }
+.active { display:block; }
+button { padding:10px 20px; margin:10px; border:none; border-radius:8px; cursor:pointer; }
+.primary { background:#00ff99; color:black; font-weight:bold; }
+.danger { background:red; color:white; }
+.hidden { opacity:0.2; }
+#score { position:fixed; top:10px; right:10px; font-size:18px; }
+.card { background:#222; padding:20px; margin:10px; border-radius:10px; }
+</style>
+</head>
+<body>
+
+<div id="score">Points: 0</div>
+
+<!-- WELCOME -->
+<div id="welcome" class="screen active">
+<h1>Points Challenge</h1>
+<p>Earn as many points as possible.</p>
+<input id="name" placeholder="Enter name">
+<br>
+<button class="primary" onclick="startGame()">Start</button>
+</div>
+
+<!-- GAME -->
+<div id="game" class="screen">
+<h2 id="taskText"></h2>
+<div id="options"></div>
+<p id="feedback"></p>
+<p id="timer"></p>
+</div>
+
+<!-- END -->
+<div id="end" class="screen">
+<h2>Final Score</h2>
+<p id="finalScore"></p>
+<button onclick="restart()">Play Again</button>
+
+<h3>Debrief</h3>
+<p>This game used dark patterns:</p>
+<ul>
+<li>Urgency (timers)</li>
+<li>Social proof ("Top players chose this")</li>
+<li>Misdirection (buttons, hidden options)</li>
+</ul>
+</div>
+
+<script>
+let score = 0;
+let level = 0;
+let timer;
+
+const tasks = [
+{ q:"Click the smallest circle", options:["Big","Small","Medium"], correct:1 },
+{ q:"What is 1+1?", options:["1","2","Window"], correct:1 },
+{ q:"How many months have 28 days?", options:["1","6","12"], correct:2 },
+{ q:"Click the color of the word RED", options:["Blue","Red","Green"], correct:0 },
+{ q:"Do NOT click anything", options:["Click","Don't Click"], correct:1 },
+{ q:"What comes next? 2,4,8,16", options:["18","24","32"], correct:2 },
+{ q:"What is at end of everything?", options:["g","thing","nothing"], correct:0 },
+{ q:"Pick correct option", options:["A","B","C"], correct:-1 }
+];
+
+function startGame(){
+ document.getElementById('welcome').classList.remove('active');
+ document.getElementById('game').classList.add('active');
+ nextTask();
+}
+
+function nextTask(){
+ if(level >= tasks.length){ endGame(); return; }
+ let t = tasks[level];
+ document.getElementById('taskText').innerText = t.q;
+ let optDiv = document.getElementById('options');
+ optDiv.innerHTML = '';
+
+ t.options.forEach((o,i)=>{
+  let btn = document.createElement('button');
+  btn.innerText = o;
+
+  // Dark pattern: highlight "recommended"
+  if(i===t.correct){ btn.classList.add('primary'); }
+
+  btn.onclick = ()=>choose(i);
+  optDiv.appendChild(btn);
+ });
+
+ // Urgency timer
+ let timeLeft = 5;
+ document.getElementById('timer').innerText = "Time: "+timeLeft;
+ clearInterval(timer);
+ timer = setInterval(()=>{
+  timeLeft--;
+  document.getElementById('timer').innerText = "Time: "+timeLeft;
+  if(timeLeft<=0){ clearInterval(timer); nextTask(); }
+ },1000);
+}
+
+function choose(i){
+ let t = tasks[level];
+ if(i===t.correct){ score += 10; showFeedback("+10 points"); }
+ else { score -= 5; showFeedback("-5 points"); }
+ document.getElementById('score').innerText = "Points: "+score;
+ level++;
+ setTimeout(nextTask,1000);
+}
+
+function showFeedback(msg){
+ document.getElementById('feedback').innerText = msg;
+}
+
+function endGame(){
+ document.getElementById('game').classList.remove('active');
+ document.getElementById('end').classList.add('active');
+ document.getElementById('finalScore').innerText = "You scored: "+score;
+}
+
+function restart(){
+ score=0; level=0;
+ document.getElementById('end').classList.remove('active');
+ document.getElementById('welcome').classList.add('active');
+ document.getElementById('score').innerText = "Points: 0";
+}
+</script>
+
+</body>
+</html>
 
